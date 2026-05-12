@@ -1,3 +1,5 @@
+# PROMPT:
+
 Actúa como un Arquitecto de Software Senior especializado en Flutter, Dart, Firebase y PostgreSQL.
 
 Quiero desarrollar una aplicación multiplataforma inspirada en Crunchyroll utilizando:
@@ -230,6 +232,8 @@ El resultado debe estar:
 
 NO GENERES CÓDIGO.
 SOLO DOCUMENTACIÓN Y PLANIFICACIÓN.
+
+# RESULTADO:
 
 # 📋 Plan de Implementación: Plataforma de Streaming Tipo Crunchyroll
 
