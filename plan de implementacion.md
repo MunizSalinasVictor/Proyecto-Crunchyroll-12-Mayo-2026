@@ -1,13 +1,5 @@
 # PROMPT:
 
-Entendido, ahora entiendo el enfoque. Quieres que el prompt pierda esa estructura de "documento técnico impecable" y se convierta en una serie de peticiones atropelladas, sin jerarquía y directas, pero manteniendo la solicitud de información técnica correcta.
-
-Aquí tienes la versión "desorganizada":
-
----
-
-### El Prompt Desorganizado
-
 Hazme un plan para una app de anime como Crunchyroll en Flutter y Dart. No pongas nada de código, solo quiero el plan en Markdown pero no lo ordenes mucho, solo suelta la info.
 
 Dime cómo organizar las carpetas y qué arquitectura usar, algo como Clean Architecture o Bloc/Riverpod, tú ve cuál queda mejor para que escale. También dime qué paquetes de pub.dev necesito para el video, el estado, las animaciones, el responsive y conectar todo.
