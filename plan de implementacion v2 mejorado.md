@@ -223,317 +223,100 @@ Registro (email + contraseña) → Verificación email → Login → Sesión per
 # Estructura de archivos:
 
 ```
-.
-├── pubspec.yaml
-├── analysis_options.yaml
-├── README.md
-├── .env.example
-├── .gitignore
-├── android/
-├── ios/
-├── web/
-├── windows/
-├── macos/
-├── linux/
-├── assets/
-│   ├── animations/
-│   │   └── loading.lottie
-│   ├── images/
-│   │   └── placeholder.png
-│   └── fonts/
-└── lib/
-    ├── main.dart
-    ├── app.dart
-    ├── core/
-    │   ├── di/
-    │   │   └── injection.dart
-    │   ├── routing/
-    │   │   ├── app_router.dart
-    │   │   └── auth_guard.dart
-    │   ├── theme/
-    │   │   ├── app_colors.dart
-    │   │   ├── app_text_styles.dart
-    │   │   ├── app_theme.dart
-    │   │   └── dimensions.dart
-    │   ├── errors/
-    │   │   ├── failures.dart
-    │   │   ├── exceptions.dart
-    │   │   └── error_handler.dart
-    │   ├── utils/
-    │   │   ├── constants.dart
-    │   │   ├── logger.dart
-    │   │   └── validators.dart
-    │   ├── extensions/
-    │   │   ├── context_extensions.dart
-    │   │   ├── string_extensions.dart
-    │   │   └── date_time_extensions.dart
-    │   └── network/
-    │       ├── api_client.dart
-    │       ├── dio_interceptor.dart
-    │       └── api_endpoints.dart
-    ├── features/
-    │   ├── auth/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   ├── auth_remote_datasource.dart
-    │   │   │   │   └── auth_local_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   └── user_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── auth_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   └── user.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── auth_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       ├── login_usecase.dart
-    │   │   │       ├── register_usecase.dart
-    │   │   │       ├── logout_usecase.dart
-    │   │   │       ├── check_auth_status_usecase.dart
-    │   │   │       └── send_password_reset_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── auth_bloc.dart
-    │   │       │   ├── auth_event.dart
-    │   │       │   └── auth_state.dart
-    │   │       ├── pages/
-    │   │       │   ├── login_page.dart
-    │   │       │   ├── register_page.dart
-    │   │       │   └── forgot_password_page.dart
-    │   │       └── widgets/
-    │   │           ├── login_form.dart
-    │   │           └── social_login_buttons.dart
-    │   ├── catalog/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   ├── anime_remote_datasource.dart
-    │   │   │   │   └── anime_local_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   ├── anime_model.dart
-    │   │   │   │   ├── episode_model.dart
-    │   │   │   │   └── genre_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── anime_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   ├── anime.dart
-    │   │   │   │   ├── episode.dart
-    │   │   │   │   └── genre.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── anime_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       ├── get_popular_animes_usecase.dart
-    │   │   │       ├── get_anime_list_usecase.dart
-    │   │   │       ├── get_anime_detail_usecase.dart
-    │   │   │       ├── search_animes_usecase.dart
-    │   │   │       └── get_genres_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── catalog_bloc.dart
-    │   │       │   ├── catalog_event.dart
-    │   │       │   └── catalog_state.dart
-    │   │       ├── pages/
-    │   │       │   ├── home_page.dart
-    │   │       │   ├── anime_detail_page.dart
-    │   │       │   └── anime_list_page.dart
-    │   │       └── widgets/
-    │   │           ├── anime_card.dart
-    │   │           ├── genre_chip.dart
-    │   │           ├── episode_tile.dart
-    │   │           └── anime_grid.dart
-    │   ├── player/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   └── video_remote_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   ├── video_source_model.dart
-    │   │   │   │   └── subtitle_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── player_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   ├── video_source.dart
-    │   │   │   │   └── subtitle_track.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── player_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       ├── get_video_stream_usecase.dart
-    │   │   │       └── get_subtitles_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── player_bloc.dart
-    │   │       │   ├── player_event.dart
-    │   │       │   └── player_state.dart
-    │   │       ├── pages/
-    │   │       │   └── player_page.dart
-    │   │       └── widgets/
-    │   │           ├── video_controls.dart
-    │   │           ├── subtitle_selector.dart
-    │   │           └── quality_selector.dart
-    │   ├── favorites/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   ├── favorites_remote_datasource.dart
-    │   │   │   │   └── favorites_local_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   └── favorite_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── favorites_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   └── favorite.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── favorites_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       ├── get_favorites_usecase.dart
-    │   │   │       ├── add_favorite_usecase.dart
-    │   │   │       └── remove_favorite_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── favorites_bloc.dart
-    │   │       │   ├── favorites_event.dart
-    │   │       │   └── favorites_state.dart
-    │   │       ├── pages/
-    │   │       │   └── favorites_page.dart
-    │   │       └── widgets/
-    │   │           └── favorite_button.dart
-    │   ├── history/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   ├── history_remote_datasource.dart
-    │   │   │   │   └── history_local_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   └── watch_history_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── history_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   └── watch_history.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── history_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       ├── get_watch_history_usecase.dart
-    │   │   │       ├── update_progress_usecase.dart
-    │   │   │       └── clear_history_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── history_bloc.dart
-    │   │       │   ├── history_event.dart
-    │   │       │   └── history_state.dart
-    │   │       ├── pages/
-    │   │       │   └── history_page.dart
-    │   │       └── widgets/
-    │   │           └── history_tile.dart
-    │   ├── profile/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   └── profile_remote_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   └── profile_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── profile_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   └── profile.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── profile_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       ├── get_profile_usecase.dart
-    │   │   │       └── update_profile_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── profile_bloc.dart
-    │   │       │   ├── profile_event.dart
-    │   │       │   └── profile_state.dart
-    │   │       ├── pages/
-    │   │       │   └── profile_page.dart
-    │   │       └── widgets/
-    │   │           └── avatar_picker.dart
-    │   ├── subscription/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   └── subscription_remote_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   └── subscription_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── subscription_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   └── subscription.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── subscription_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       ├── get_current_plan_usecase.dart
-    │   │   │       └── subscribe_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── subscription_bloc.dart
-    │   │       │   ├── subscription_event.dart
-    │   │       │   └── subscription_state.dart
-    │   │       └── pages/
-    │   │           └── plans_page.dart
-    │   ├── search/
-    │   │   ├── data/
-    │   │   │   ├── datasources/
-    │   │   │   │   └── search_remote_datasource.dart
-    │   │   │   ├── models/
-    │   │   │   │   └── search_result_model.dart
-    │   │   │   └── repositories/
-    │   │   │       └── search_repository_impl.dart
-    │   │   ├── domain/
-    │   │   │   ├── entities/
-    │   │   │   │   └── search_result.dart
-    │   │   │   ├── repositories/
-    │   │   │   │   └── search_repository.dart
-    │   │   │   └── usecases/
-    │   │   │       └── search_animes_usecase.dart
-    │   │   └── presentation/
-    │   │       ├── bloc/
-    │   │       │   ├── search_bloc.dart
-    │   │       │   ├── search_event.dart
-    │   │       │   └── search_state.dart
-    │   │       ├── pages/
-    │   │       │   └── search_page.dart
-    │   │       └── widgets/
-    │   │           ├── search_bar.dart
-    │   │           └── search_result_tile.dart
-    │   └── admin/
-    │       ├── data/
-    │       │   ├── datasources/
-    │       │   │   └── admin_remote_datasource.dart
-    │       │   ├── models/
-    │       │   │   └── admin_stats_model.dart
-    │       │   └── repositories/
-    │       │       └── admin_repository_impl.dart
-    │       ├── domain/
-    │       │   ├── entities/
-    │       │   │   └── admin_stats.dart
-    │       │   ├── repositories/
-    │       │   │   └── admin_repository.dart
-    │       │   └── usecases/
-    │       │       ├── get_dashboard_stats_usecase.dart
-    │       │       └── manage_content_usecase.dart
-    │       └── presentation/
-    │           ├── bloc/
-    │           │   ├── admin_bloc.dart
-    │           │   ├── admin_event.dart
-    │           │   └── admin_state.dart
-    │           ├── pages/
-    │           │   ├── admin_dashboard_page.dart
-    │           │   ├── manage_animes_page.dart
-    │           │   └── manage_users_page.dart
-    │           └── widgets/
-    │               ├── stats_card.dart
-    │               └── admin_data_table.dart
-    └── shared/
-        ├── widgets/
-        │   ├── error_display.dart
-        │   ├── loading_indicator.dart
-        │   ├── empty_state.dart
-        │   └── custom_app_bar.dart
-        └── mixins/
-            └── permission_mixin.dart
+lib/
+├── main.dart
+├── app.dart
+├── core/
+│   ├── theme/
+│   │   ├── app_colors.dart
+│   │   └── app_theme.dart
+│   ├── router/
+│   │   └── app_router.dart
+│   └── di/
+│       └── injection.dart
+├── features/
+│   ├── auth/
+│   │   ├── bloc/
+│   │   │   ├── auth_bloc.dart
+│   │   │   ├── auth_event.dart
+│   │   │   └── auth_state.dart
+│   │   ├── pages/
+│   │   │   ├── login_page.dart
+│   │   │   └── register_page.dart
+│   │   ├── widgets/
+│   │   │   └── login_form.dart
+│   │   └── models/
+│   │       └── user_model.dart
+│   ├── catalog/
+│   │   ├── bloc/
+│   │   │   ├── catalog_bloc.dart
+│   │   │   ├── catalog_event.dart
+│   │   │   └── catalog_state.dart
+│   │   ├── pages/
+│   │   │   ├── home_page.dart
+│   │   │   └── anime_detail_page.dart
+│   │   ├── widgets/
+│   │   │   ├── anime_card.dart
+│   │   │   └── episode_tile.dart
+│   │   └── models/
+│   │       ├── anime_model.dart
+│   │       ├── episode_model.dart
+│   │       └── genre_model.dart
+│   ├── player/
+│   │   ├── bloc/
+│   │   │   ├── player_bloc.dart
+│   │   │   ├── player_event.dart
+│   │   │   └── player_state.dart
+│   │   ├── pages/
+│   │   │   └── player_page.dart
+│   │   ├── widgets/
+│   │   │   └── video_controls.dart
+│   │   └── models/
+│   │       ├── video_source_model.dart
+│   │       └── subtitle_model.dart
+│   ├── favorites/
+│   │   ├── bloc/
+│   │   ├── pages/
+│   │   │   └── favorites_page.dart
+│   │   └── models/
+│   │       └── favorite_model.dart
+│   ├── history/
+│   │   ├── bloc/
+│   │   ├── pages/
+│   │   │   └── history_page.dart
+│   │   └── models/
+│   │       └── watch_history_model.dart
+│   ├── profile/
+│   │   ├── bloc/
+│   │   ├── pages/
+│   │   │   └── profile_page.dart
+│   │   └── models/
+│   │       └── profile_model.dart
+│   ├── subscription/
+│   │   ├── bloc/
+│   │   ├── pages/
+│   │   │   └── plans_page.dart
+│   │   └── models/
+│   │       └── subscription_model.dart
+│   ├── search/
+│   │   ├── bloc/
+│   │   ├── pages/
+│   │   │   └── search_page.dart
+│   │   └── models/
+│   │       └── search_result_model.dart
+│   └── admin/
+│       ├── bloc/
+│       ├── pages/
+│       │   ├── admin_dashboard_page.dart
+│       │   └── manage_animes_page.dart
+│       └── models/
+│           └── admin_stats_model.dart
+└── shared/
+    ├── widgets/
+    │   ├── error_display.dart
+    │   └── loading_indicator.dart
+    └── models/
+        └── api_response.dart
 ```
 
 
