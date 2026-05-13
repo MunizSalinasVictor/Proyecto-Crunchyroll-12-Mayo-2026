@@ -1,6 +1,6 @@
 # PROMPT:
 
-Hazme un plan para una app de anime como Crunchyroll en Flutter y Dart. No pongas nada de código, solo quiero el plan en Markdown pero no lo ordenes mucho, solo suelta la info.
+Hazme un plan para una app de anime como Crunchyroll en Flutter y Dart. No pongas nada de código, solo quiero el plan en Markdown.
 
 Dime cómo organizar las carpetas y qué arquitectura usar, algo como Clean Architecture o Bloc/Riverpod, tú ve cuál queda mejor para que escale. También dime qué paquetes de pub.dev necesito para el video, el estado, las animaciones, el responsive y conectar todo.
 
@@ -10,241 +10,238 @@ Aparte dime cómo diseñar la UI para que sea naranja con gris como Crunchyroll,
 
 # RESULTADO:
 
-# 📋 Plan de Implementación: Plataforma de Streaming Tipo Crunchyroll
+# Plan de App de Anime — Flutter & Dart (estilo Crunchyroll)
 
-> **Nota del Arquitecto:** Este documento es una guía estratégica, arquitectónica y de planificación. No contiene código, widgets, clases ni snippets. Está diseñado para servir como hoja de ruta técnica para un equipo de desarrollo senior, enfocada en escalabilidad, mantenibilidad y experiencia de usuario premium.
-
----
-
-## 1. 🎨 Diseño UI/UX
-
-### Sistema de Diseño
-- **Paleta Cromática:** Fondo principal en gris carbón/negro mate (`#0D0D0D` a `#1A1A1A`), acentos en naranja intenso (`#F47521`) para estados activos, hover y CTAs. Texto en blanco puro (`#FFFFFF`) y grises intermedios (`#B0B0B0`, `#888888`) para jerarquía secundaria.
-- **Tipografía:** Sans-serif moderna, altamente legible en pantallas pequeñas y grandes. Pesos variables para títulos, metadatos y subtítulos.
-- **Componentes Visuales:** Tarjetas con bordes sutiles, sombras difuminadas, overlays de gradiente oscuro para legibilidad sobre posters, badges para calidad/idiomas/subtítulos.
-- **Microinteracciones:** Hover con elevación y cambio de opacidad en desktop, tap feedback háptico y visual en mobile, transiciones de desplazamiento suaves, indicadores de progreso animados.
-
-### Experiencia de Usuario (UX)
-- **Enfoque en Descubrimiento:** Scroll infinito optimizado, categorías destacadas, carruseles por género/estudio, sección "Continuar Viendo" visible inmediatamente tras autenticación.
-- **Carga Perceptiva:** Skeleton loading en todas las vistas de catálogo, placeholders de imagen optimizados, precarga de metadatos críticos.
-- **Feedback Inmediato:** Estados de carga, éxito y error claramente diferenciados. Toasts no intrusivos para acciones secundarias (favoritos, historial).
-
-### Navegación y Estructura Visual
-- **Mobile:** Barra inferior con 5 ítems principales (Inicio, Explorar, Búsqueda, Mi Lista, Perfil). Botón de reproducción flotante contextual en vistas de detalle.
-- **Web/Desktop:** Barra lateral colapsable + top bar fija con búsqueda global y acceso rápido a perfil. Grid responsive de 3 a 6 columnas según viewport.
-- **Organización de Pantallas:**
-  - *Públicas:* Landing, Onboarding, Catálogo general, Detalle de anime (sin autenticación requerida para metadatos).
-  - *Privadas:* Reproductor, Historial, Favoritos, Configuración, Panel Premium.
-  - *Administrativas:* Gestión de contenido, reportes, moderación, configuración de planes.
-- **Flujo de Navegación:** `Landing → Auth → Home (Personalizado) → Explorar → Detalle → Reproductor → (Auto-play/Recomendaciones)`. Deep linking habilitado para compartir episodios directamente.
+la arquitectura que más conviene acá es **Clean Architecture combinada con Bloc** para el manejo de estado. Riverpod también escala bien pero Bloc tiene mejor separación de concerns para algo tan grande como esto donde vas a tener múltiples dominios: auth, catálogo, streaming, perfiles, suscripciones, notificaciones y admin. La idea es que cada feature viva completamente aislada y que el día que quieras agregar más cosas no tengas que tocar lo que ya funciona.
 
 ---
 
-## 2. 🏗️ Arquitectura del Proyecto
+## estructura de carpetas
 
-### Arquitectura Recomendada
-- **Clean Architecture + Feature-First:** Separación estricta por capas (Presentación, Dominio, Datos) organizada verticalmente por funcionalidad. Cada feature es un módulo autónomo que depende únicamente de contratos abstractos.
-- **Separación Frontend/Backend:** Flutter actúa exclusivamente como cliente visual. Toda lógica de negocio, persistencia relacional y orquestación multimedia reside en un backend dedicado.
+la raíz del proyecto quedaría algo así, muy granular para que no se enrede cuando el equipo crezca:
 
-### Estructura de Carpetas (Conceptual)
 ```
 lib/
-├── core/           (utilidades, constantes, temas, router, interceptores, DI)
-├── features/       (auth, catalog, player, profile, favorites, history, admin, subscription)
-│   ├── presentation/ (screens, viewmodels/notifiers, widgets UI)
-│   ├── domain/       (entities, use cases, repositories interfaces)
-│   └── data/         (repositories impl, remote sources, local sources, mappers)
-└── shared/         (componentes reutilizables, diseño, helpers genéricos)
+├── core/
+│   ├── constants/           ← colores, strings, rutas nombradas
+│   ├── errors/              ← failures, exceptions, mappers de errores
+│   ├── network/             ← dio client, interceptors, token refresh
+│   ├── router/              ← go_router config, guards de auth
+│   ├── theme/               ← ThemeData, colores naranja/gris, tipografía
+│   ├── utils/               ← formatters, validators, helpers
+│   └── widgets/             ← widgets compartidos (skeletons, buttons, badges)
+│
+├── features/
+│   ├── auth/
+│   │   ├── data/
+│   │   │   ├── datasources/     ← firebase_auth_datasource.dart, postgres_auth_datasource.dart
+│   │   │   ├── models/          ← user_model.dart (JSON serializable)
+│   │   │   └── repositories/    ← auth_repository_impl.dart
+│   │   ├── domain/
+│   │   │   ├── entities/        ← user.dart (clase pura sin dependencias)
+│   │   │   ├── repositories/    ← auth_repository.dart (abstract)
+│   │   │   └── usecases/        ← login_usecase.dart, register_usecase.dart, logout_usecase.dart
+│   │   └── presentation/
+│   │       ├── bloc/            ← auth_bloc.dart, auth_event.dart, auth_state.dart
+│   │       └── pages/           ← login_page.dart, register_page.dart
+│   │
+│   ├── catalog/              ← lista de animes, búsqueda, filtros por género
+│   ├── detail/               ← página de detalle de anime, episodios
+│   ├── player/               ← reproductor de video, subtítulos, calidad
+│   ├── profile/              ← perfiles de usuario, historial, favoritos
+│   ├── subscription/         ← planes, pagos, gestión de membresía
+│   ├── notifications/        ← FCM, push, in-app
+│   ├── search/               ← búsqueda global con debounce
+│   ├── home/                 ← carrusel principal, banners, tendencias
+│   └── admin/                ← panel de administración (rutas protegidas por rol)
+│
+├── injection/
+│   └── injection_container.dart   ← get_it + injectable para DI
+│
+└── main.dart
 ```
 
-### Manejo de Estado y Flujo de Datos
-- **Recomendación Principal:** Riverpod 2.0+ por su tipado seguro, inyección de dependencias nativa, testabilidad y arquitectura orientada a flujos asíncronos. Alternativa enterprise: Bloc/Cubit para flujos estrictos de eventos y estados explícitos.
-- **Flujo de Datos:** `UI → Notifier/ViewModel → Use Case → Repository → DataSource (API/Backend) → Mappers → Entities → UI`. Las mutaciones viajan unidireccionalmente; los streams/reactive streams actualizan vistas específicas.
-
-### Escalabilidad y Limpieza Arquitectónica
-- **Inyección de Dependencias:** Contenedor global configurado en startup, con scopes por feature.
-- **Contratos vs Implementaciones:** Interfaces en `domain/`, implementaciones en `data/`. Permite cambiar de API, base de datos o mock sin tocar UI.
-- **Testing Boundaries:** Unit tests en use cases, widget tests en presentación, integration tests en flujos completos. La arquitectura facilita mocks y stubs.
+dentro de cada feature la estructura data/domain/presentation se repite siempre igual. esto es clave para que cualquier dev nuevo entienda en 5 minutos dónde va cada cosa. los datasources hablan con APIs externas, Firebase o la base de datos. los repositories son la capa de abstracción que el dominio consume sin saber de dónde vienen los datos. los usecases contienen la lógica de negocio y son clases simples con un solo método `call()`. las entidades son objetos de dominio puros sin ninguna dependencia de paquetes. y los BLoCs manejan los estados de la UI.
 
 ---
 
-## 3. 🗄️ Base de Datos PostgreSQL
+## paquetes de pub.dev que necesitas
 
-### Integración con Flutter
-- **Conexión Directa Prohibida:** Flutter nunca debe conectarse directamente a PostgreSQL en producción. Se implementa un **API Gateway/Backend** (REST o GraphQL) que expone endpoints seguros. Flutter consume estos endpoints mediante clientes generados o HTTP typed clients.
-- **Backend Recomendado:** Node.js (Express/NestJS), Go (Gin/Fiber), Python (FastAPI) o Dart (Dart Frog). El backend gestiona pooling, validación, transacciones y caché.
+**estado y DI**
+- `flutter_bloc` — el core, muy maduro y testeado
+- `get_it` + `injectable` — inyección de dependencias sin boilerplate, con generación de código
+- `equatable` — para comparar estados en el BLoC sin escribir operadores manualmente
 
-### Arquitectura Recomendada para Backend
-- **Patrón Repository + Service Layer:** Controllers/Endpoints → Services (lógica) → Repositories (PostgreSQL queries) → Mappers → DTOs → Cliente.
-- **Read/Write Split:** Réplicas de lectura para catálogo y búsqueda. Base principal para transacciones (pagos, historial, favoritos).
-- **Capa de Caché:** Redis frente a PostgreSQL para consultas frecuentes (top charts, metadatos de episodios, sesiones).
+**navegación**
+- `go_router` — navegación declarativa, soporta deep links, guards de autenticación, y es el estándar actual en Flutter
 
-### Manejo de Relaciones y Entidades
-- **Modelado:** UUIDs como claves primarias. Relaciones muchos-a-muchos mediante tablas intermedias (`anime_genres`, `user_favorites`, `watch_history`). Índices compuestos en `user_id + anime_id`, `studio_id`, `release_date`.
-- **Integridad:** Constraints `NOT NULL`, `UNIQUE`, `FOREIGN KEY` con `ON DELETE CASCADE` o `SET NULL` según contexto. Triggers para auditoría y actualización de `updated_at`.
-- **Entidades Clave:** `users`, `subscriptions`, `animes`, `episodes`, `genres`, `studios`, `languages`, `favorites`, `history`, `admin_roles`.
+**red y APIs**
+- `dio` — HTTP client con interceptors, lo usarás para el backend en Postgres/Node o lo que pongas de API
+- `retrofit` — genera código para los endpoints automáticamente a partir de anotaciones, va sobre Dio
+- `pretty_dio_logger` — para debug en desarrollo
 
-### Rendimiento, Optimización y Escalabilidad
-- **Indexación Estratégica:** B-tree para búsqueda exacta, GIN/GiST para búsqueda full-text en títulos/descripciones, índices parciales para `is_active = true`.
-- **Particionamiento:** Tablas de `history` y `logs` particionadas por mes/año. Archiving automático a almacenamiento frío.
-- **Seguridad:** Row Level Security (RLS) para aislamiento multi-tenant interno. Roles con privilegios mínimos. Credenciales gestionadas por secret manager. Conexiones encriptadas (TLS). Prepared statements obligatorios.
+**Firebase**
+- `firebase_core`, `firebase_auth`, `cloud_firestore` (si usas Firestore para algo ligero), `firebase_storage`, `firebase_messaging`
 
----
+**video**
+- `video_player` — el oficial de Flutter, base para todo
+- `chewie` — wrapper sobre video_player con controles bonitos y personalizables, es lo más fácil para empezar
+- `better_player` — alternativa más potente, soporta HLS, DASH, subtítulos .srt/.vtt, múltiples calidades, DRM básico. Para producción esta es la que conviene
+- `flutter_hls_parser` — si necesitas parsear los manifests HLS en cliente
 
-## 4. 🔥 Integración y Rol de Firebase
+**almacenamiento local**
+- `hive` + `hive_flutter` — para guardar historial offline, caché de datos del catálogo, preferencias del usuario. mucho más rápido que sqlite para este tipo de datos
+- `flutter_secure_storage` — para guardar el JWT y tokens de refresh de forma segura en el keychain/keystore del dispositivo, jamás en SharedPreferences
 
-### Estrategia Complementaria
-Firebase no reemplaza a PostgreSQL. Actúa como capa de **servicios en tiempo real, infraestructura de mensajería y observabilidad**.
+**UI y animaciones**
+- `shimmer` — los skeleton loaders, esencial para la percepción de velocidad
+- `cached_network_image` — carga de imágenes con caché automático, indispensable para un catálogo grande
+- `lottie` — animaciones desde archivos .json de After Effects, para splash, onboarding, estados vacíos
+- `flutter_animate` — animaciones declarativas muy expresivas con una API limpia, ideal para transiciones de elementos
+- `animations` — paquete oficial de Google, tiene las transiciones de Material 3 como container transform
+- `carousel_slider` — para los banners y carruseles del home
 
-### Distribución de Responsabilidades
-| Capa | PostgreSQL | Firebase |
-|------|------------|----------|
-| Datos Relacionales | ✅ Usuarios, planes, catálogo, favoritos, historial, transacciones | ❌ |
-| Autenticación | ❌ | ✅ Social, email, phone, gestión de sesiones iniciales |
-| Archivos Multimedia | ❌ | ✅ Thumbnails, banners, avatares (no videos principales) |
-| Tiempo Real/Config | ❌ | ✅ Feature flags, estados de mantenimiento, notificaciones push |
-| Métricas/Error Tracking | ❌ | ✅ Analytics, Crashlytics, Performance Monitoring |
+**responsive y adaptativo**
+- `flutter_screenutil` — escala automática de tamaños de texto y widgets basado en el diseño base
+- `responsive_framework` — breakpoints declarativos para mobile/tablet/desktop/web si piensas hacer Flutter Web también
 
-### Cuándo Usar Cada Tecnología
-- **Usar PostgreSQL:** Cualquier dato estructurado, transaccional, con relaciones complejas, reportes financieros, historial de consumo, planes de suscripción.
-- **Usar Firebase:** Push notifications, configuración remota, autenticación rápida, métricas de uso, crash reporting, almacenamiento de assets estáticos ligeros.
-- **Sincronización:** Al registrarse vía Firebase Auth, un webhook o backend process crea/actualiza el registro en PostgreSQL y vincula el `firebase_uid` con el `user_uuid`.
+**subtítulos y accesibilidad**
+- `subtitle_wrapper_package` o parsear manualmente — los subtítulos en streaming van en formato WebVTT (.vtt), puedes parsearlos con un paquete o escribir el parser tú mismo (no es complicado)
 
----
+**formularios y validación**
+- `reactive_forms` o `formz` — manejo de formularios con validación reactiva
 
-## 5. 📦 Ecosistema de Dependencias Recomendadas
+**internacionalización**
+- `flutter_localizations` + `intl` — para español, inglés y japonés si lo necesitas
 
-| Categoría | Dependencia | Propósito | Ventajas | Alternativas |
-|-----------|-------------|-----------|----------|--------------|
-| **Estado** | `riverpod` + `riverpod_generator` | Gestión reactiva, inyección, flujos asíncronos | Tipado seguro, menos boilerplate, testing nativo | `bloc`, `flutter_modular`, `getx` |
-| **Routing** | `go_router` | Navegación declarativa, deep linking, guards | Integración con estado, manejo de rutas anidadas, web/desktop support | `auto_route`, `fluro` |
-| **Networking** | `dio` + `retrofit` | Cliente HTTP typed, interceptores, retry, logging | Abstracción limpia, generación automática de clientes, manejo robusto de errores | `http`, `chopper` |
-| **Video Player** | `video_player` + `chewy` o `better_player` | Reproducción HLS/DASH, controles personalizados | Ligero, extensible, soporta Picture-in-Picture y audio background | `media_kit`, `flutter_vlc_player` |
-| **Responsive** | `responsive_framework` o `flutter_screenutil` | Adaptación de layouts y tipografía por viewport | Breakpoints claros, escalado proporcional, soporta web/desktop | `sizer`, `device_preview` |
-| **Caché/Imágenes** | `cached_network_image` + `hive` | Descarga y persistencia de assets y tokens offline | Gestión automática de caché, encriptación opcional, lectura rápida | `shared_preferences`, `isar`, `flutter_cache_manager` |
-| **Loading/Shimmer** | `shimmer` + `flutter_spinkit` | Indicadores visuales de carga y placeholders | Alto rendimiento, personalizable, accesible | `loading_indicator`, `lottie` |
-| **Seguridad** | `flutter_secure_storage` | Almacenamiento encriptado de tokens y credenciales | Integración con Keychain/Keystore nativo, resistente a root/jailbreak | `flutter_secure_storage_platform_interface` custom |
-| **Firebase SDK** | `firebase_core`, `firebase_auth`, `firebase_messaging`, `firebase_analytics`, `firebase_crashlytics` | Integración oficial de servicios cloud | Mantenimiento Google, compatibilidad multiplataforma, monitoreo integrado | Custom backend wrappers (menos recomendado) |
+**otros útiles**
+- `freezed` + `json_serializable` — para generar los modelos de datos con copyWith, toJson, fromJson sin escribirlos a mano. indispensable
+- `connectivity_plus` — detectar si hay internet y mostrar estados offline
+- `permission_handler` — permisos de notificaciones
 
 ---
 
-## 6. 🔐 Sistema de Autenticación y Control de Acceso
+## PostgreSQL vs Firebase — qué va en cada lado
 
-### Flujos Principales
-- **Registro/Login:** Firebase Auth maneja la verificación inicial. Tras éxito, el backend valida, crea/actualiza el perfil en PostgreSQL, asigna rol y devuelve un JWT personalizado.
-- **Recuperación de Contraseña:** Firebase envía enlace seguro. El backend revoca sesiones activas si es necesario y fuerza revalidación tras reset.
-- **Sesiones:** JWT de corta duración (15-30 min) + Refresh Token (7-30 días). Almacenamiento seguro en `flutter_secure_storage`. Renovación automática silenciosa antes de expiración.
+esto es lo más importante de la arquitectura del sistema completo, no mezcles todo en Firebase porque vas a tener costos imposibles y limitaciones a escala.
 
-### Seguridad y Validaciones
-- **Protección de Rutas:** Middleware/Guards en router verifican validez de JWT, claims y suscripción activa antes de renderizar pantallas premium o admin.
-- **Roles:** `guest`, `user`, `premium`, `admin`, `moderator`. Gestionados en PostgreSQL y reflejados como custom claims en Firebase para validación rápida.
-- **Validaciones:** Cliente (formato, fuerza, duplicados locales) + Servidor (unicidad, existencia, integridad relacional). Rate limiting por IP/email para prevenir fuerza bruta.
-- **Panel Administrador:** Acceso restringido por IP o 2FA. Logs de auditoría para cada acción sensible (edición de catálogo, cambio de roles, reembolsos).
+**PostgreSQL (tu backend principal)** — aquí van los datos estructurados, relacionales y críticos del negocio. la tabla `users` con id, email, username, avatar_url, created_at, plan_id, fecha de nacimiento para restricciones de contenido. la tabla `animes` con todos los metadatos: título, descripción, géneros (array o tabla separada con join), studio, año, rating, estado (en emisión, finalizado, próximamente), thumbnail_url, banner_url. los `episodes` con número, temporada, duración, video_url (que apunta al archivo en Firebase Storage o CDN), subtítulos_url, fecha de emisión. los `plans` con nombre, precio, resolución máxima, número de perfiles simultáneos, acceso a contenido sin publicidad. el `watch_history` de cada usuario (user_id, episode_id, progress_seconds, completed, updated_at). los `favorites` y `watchlists`. los `ratings` y comentarios. el sistema de `roles` para los admins. toda la lógica de negocio de suscripciones y pagos. Este backend lo puedes hacer en Node.js con Express/Fastify, NestJS si quieres más estructura, o Supabase que ya te da todo esto con PostgreSQL más una API REST/GraphQL automática más auth propia si no quieres Firebase para eso.
 
----
+**Firebase** — lo usas para tres cosas específicas: autenticación, storage de archivos de video/imágenes, y notificaciones push. Firebase Auth lo pones como proveedor de identidad (email/password, Google Sign-In, Apple Sign-In) y cuando el usuario se autentica, tu backend de PostgreSQL recibe el Firebase UID y crea o busca el usuario en tu base de datos, devolviendo un JWT propio. así Firebase maneja la parte complicada del auth (reset de contraseña, verificación de email, OAuth) y tú mantienes el control total de los datos de usuario. Firebase Storage lo usas para subir los videos procesados y las imágenes de portadas/banners, porque necesitas URLs públicas con control de acceso. Firebase Cloud Messaging (FCM) para las notificaciones push de nuevos episodios, actualizaciones de watchlist, alertas de cuenta.
 
-## 7. 🎬 Streaming y Gestión Multimedia
+**la conexión entre ambos**: el flujo es Firebase Auth → obtiene UID y token → tu app llama a tu API backend con ese token en el header → el backend valifica el Firebase token con el Firebase Admin SDK → crea sesión o encuentra usuario en PostgreSQL → devuelve JWT propio con los claims de rol y plan → la app guarda ese JWT en flutter_secure_storage → todas las llamadas subsiguientes van con el JWT propio en el Authorization header.
 
-### Arquitectura de Video
-- **Formato:** HLS (`.m3u8`) y/o DASH para adaptive bitrate streaming. Fragmentación en múltiples calidades (360p a 1080p/4K).
-- **Almacenamiento:** Buckets en Cloud Storage (AWS S3, Cloudflare R2, GCP). CDN global para distribución de baja latencia (CloudFront, Fastly, Akamai).
-- **Reproducción:** Backend genera URLs firmadas con expiración (JWT en query o header). El cliente solicita manifiestos, selecciona calidad según red y buffer dinámicamente.
-
-### Subtítulos, Thumbnails y Optimización
-- **Subtítulos:** WebVTT o SRT separados. Sincronización manejada por reproductor. Soporte multiidioma con carga bajo demanda.
-- **Thumbnails/Banners:** Generación automática en múltiples resoluciones. Formato WebP/AVIF. Lazy loading + prefetch inteligente en scroll.
-- **Rendimiento:** Pre-carga de siguiente episodio, memoria de buffer optimizada, desactivación de descargas en redes móviles, soporte para Picture-in-Picture y audio background.
-- **UX de Reproducción:** "Continuar donde lo dejaste", saltar intro/outro (marcadores en BD), calidad manual/auto, controles por gestos, historial de reproducción sincronizado en tiempo real (cada X segundos o al pausar).
+nunca guardes información sensible del usuario en Firestore si ya tienes PostgreSQL, es duplicar datos y complejidad sin beneficio real.
 
 ---
 
-## 8. 🗺️ Roadmap de Desarrollo
+## JWT y seguridad
 
-### Fase 1: Planeación
-- **Objetivos:** Definir alcance, requisitos técnicos, presupuesto, equipo y métricas de éxito.
-- **Tareas:** Documentar PRD, diagramas de flujo, modelo de negocio, selección de stack backend, definición de SLA.
-- **Herramientas:** Notion, Miro, Figma, Jira/Linear.
-- **Buenas Prácticas:** Validar supuestos con stakeholders, priorizar MVP, definir KPIs (retención, tiempo de reproducción, conversión premium).
-- **Errores Comunes:** Alcance indefinido, ignorar limitaciones legales de licencias, subestimar costos de CDN/almacenamiento.
+el JWT que emite tu backend debe tener en el payload: `sub` (user_id de PostgreSQL), `firebase_uid`, `email`, `role` (user/admin/moderator), `plan` (free/basic/premium), `iat`, `exp` (expiración corta, 15 minutos), y el token de refresh que vive 30 días guardado en PostgreSQL con posibilidad de revocación.
 
-### Fase 2: Diseño UI/UX
-- **Objetivos:** Entregar sistema de diseño completo y prototipos navegables.
-- **Tareas:** Wireframes de baja/alta fidelidad, componente library, flujos de navegación, validación de accesibilidad (WCAG), diseño responsive.
-- **Herramientas:** Figma, Storybook, LottieFiles.
-- **Buenas Prácticas:** Design tokens desde día 1, testing de usabilidad con usuarios reales, iteraciones rápidas.
-- **Errores Comunes:** Diseño desktop-first ignorando mobile, falta de estados de error/vacío, colores sin contraste suficiente.
+en el interceptor de Dio configuras el token refresh automático: cuando una petición devuelve 401, el interceptor pausa las peticiones pendientes, llama al endpoint de refresh con el refresh_token que tienes en secure_storage, actualiza el access_token, y reintenta las peticiones que estaban esperando. si el refresh también falla, mandas al usuario a login.
 
-### Fase 3: Configuración del Proyecto
-- **Objetivos:** Estandarizar entorno de desarrollo y pipelines.
-- **Tareas:** Configurar repositorio, linter, formatter, pre-commit hooks, CI/CD base, variables de entorno, estructura de carpetas.
-- **Herramientas:** VS Code/Android Studio, Git, GitHub Actions/GitLab CI, `flutter_lints`, `very_good_cli`.
-- **Buenas Prácticas:** Branch protection, commits semánticos, documentación de setup, Docker opcional para backend.
-- **Errores Comunes:** Mezclar entornos, hardcodear claves, falta de hooks de calidad.
+para el panel de admin protege las rutas con un guard en go_router que lee el claim `role` del JWT decodificado. en el backend, cada endpoint sensible de admin verifica el rol en el middleware antes de ejecutar cualquier lógica. nunca confíes solo en el frontend para ocultar rutas de admin.
 
-### Fase 4: Arquitectura
-- **Objetivos:** Establecer patrones, inyección, routing base y contratos.
-- **Tareas:** Implementar Clean Architecture, configurar DI container, definir routing base, crear mocks de API, establecer guías de nombrado y testing.
-- **Herramientas:** Riverpod/Bloc, `go_router`, `mocktail`, `build_runner`.
-- **Buenas Prácticas:** Contratos antes que implementaciones, separación estricta de responsabilidades, documentación de flujos.
-- **Errores Comunes:** Acoplamiento entre capas, business logic en UI, over-engineering inicial.
-
-### Fase 5: Base de Datos
-- **Objetivos:** Desplegar PostgreSQL, migraciones, seed data y políticas de acceso.
-- **Tareas:** Esquema completo, índices, relaciones, RLS, scripts de seed, backups automatizados, réplicas de lectura.
-- **Herramientas:** PostgreSQL, pgAdmin/DBeaver, `prisma`/`flyway`/`alembic` (según backend), PgBouncer.
-- **Buenas Prácticas:** Versionar migraciones, tests de integridad, monitoreo de queries lentas, políticas de retención.
-- **Errores Comunes:** Índices faltantes, N+1 queries, falta de pooling, backups manuales.
-
-### Fase 6: Backend
-- **Objetivos:** API segura, endpoints REST/GraphQL, integración PostgreSQL, caché.
-- **Tareas:** Controllers, services, repositories, middleware de auth, rate limiting, logging, Redis integration, documentación OpenAPI.
-- **Herramientas:** NestJS/Express/Go/FastAPI, Swagger/Postman, Redis, JWT lib, OpenTelemetry.
-- **Buenas Prácticas:** Validación estricta de entrada, idempotencia en POST, versionado de API, circuit breakers para servicios externos.
-- **Errores Comunes:** Lógica en controllers, falta de paginación, exponer IDs internos, ignorar timeouts.
-
-### Fase 7: Frontend
-- **Objetivos:** Implementar pantallas, navegación, estado y consumo de API.
-- **Tareas:** Maquetado UI, integración con notifiers/viewmodels, routing protegido, manejo de errores, skeletons, responsive breakpoints.
-- **Herramientas:** Flutter SDK, `dio`, `riverpod`, `go_router`, `flutter_test`.
-- **Buenas Prácticas:** Componentes reutilizables, gestión centralizada de errores, lazy loading de vistas, accesibilidad semántica.
-- **Errores Comunes:** Rebuilds innecesarios, UI bloqueante, falta de manejo de estados de red, hardcodear dimensiones.
-
-### Fase 8: Autenticación
-- **Objetivos:** Flujos de registro/login, sesiones, roles y seguridad.
-- **Tareas:** Integración Firebase Auth, sync con PostgreSQL, JWT issuance, refresh tokens, route guards, validaciones, panel admin acceso.
-- **Herramientas:** `firebase_auth`, `flutter_secure_storage`, backend auth service, custom claims.
-- **Buenas Prácticas:** Sesiones efímeras, renovación silenciosa, logout seguro (revoke), auditoría de accesos.
-- **Errores Comunes:** Tokens en memoria plana, no validar expiración, permitir acceso sin claims correctos.
-
-### Fase 9: Streaming
-- **Objetivos:** Reproductor funcional, HLS/DASH, subtítulos, CDN, historial.
-- **Tareas:** Integración video player, manifiesto fetching, adaptive bitrate, carga de WebVTT, sync de progreso, bookmarks, CDN config.
-- **Herramientas:** `video_player`/`better_player`, HLS.js (web), AWS MediaConvert/Mux, CDN provider.
-- **Buenas Prácticas:** Buffer optimizado, fallback de calidad, registro de eventos de reproducción, respeto a derechos de contenido.
-- **Errores Comunes:** Streaming directo de archivos, no manejar reconexiones, ignorar ancho de banda variable.
-
-### Fase 10: Testing
-- **Objetivos:** Cobertura, estabilidad y calidad pre-lanzamiento.
-- **Tareas:** Unit tests (use cases/repos), widget tests (UI crítica), integration tests (flujos completos), load testing backend, security audit.
-- **Herramientas:** `flutter_test`, `integration_test`, `jest`/`pytest`, k6/Locust, OWASP ZAP.
-- **Buenas Prácticas:** Pirámide de testing, mocks realistas, CI gating, reportes automatizados.
-- **Errores Comunes:** Ignorar tests de integración, testing solo en happy path, falta de pruebas de red inestable.
-
-### Fase 11: Optimización
-- **Objetivos:** Rendimiento, tamaño de app, monitoreo y lanzamiento.
-- **Tareas:** Tree shaking, obfuscación, reducción de assets, profiling de memoria/render, Crashlytics/Analytics live, A/B testing, deploy progresivo.
-- **Herramientas:** `flutter analyze`, DevTools, Firebase Performance, Sentry/Crashlytics, App Store Connect/Play Console.
-- **Buenas Prácticas:** Lanzamiento canary, monitoreo continuo, feedback loop rápido, documentación de incidencias.
-- **Errores Comunes:** Lanzar sin métricas, ignorar warnings de linter, optimizar prematuramente, no planificar rollback.
+el HTTPS es obligatorio en todos los endpoints. en producción activa CORS restrictivo solo a tus dominios. implementa rate limiting en los endpoints de auth para evitar fuerza bruta. los videos en Firebase Storage deben tener reglas que requieran autenticación para acceder, o usa URLs firmadas con tiempo de expiración corto para mayor seguridad en contenido premium.
 
 ---
 
-## ✅ Conclusión y Próximos Pasos
+## streaming de video y subtítulos
 
-Este plan establece una base técnica sólida, escalable y orientada a producción. La clave del éxito radica en:
-1. Mantener la separación estricta entre cliente (Flutter) y backend (PostgreSQL + servicios cloud).
-2. Utilizar Firebase exclusivamente para capacidades complementarias, no como almacén relacional.
-3. Implementar Clean Architecture con Feature-First para garantizar mantenibilidad a largo plazo.
-4. Priorizar la experiencia de reproducción y la seguridad de sesiones desde el primer día.
+para que los videos carguen bien y no dé una experiencia horrible, necesitas hacer streaming adaptativo. el flujo es: el video original (que sube el admin) lo procesas en el backend con FFmpeg para generar múltiples resoluciones (360p, 480p, 720p, 1080p) y lo empaquetas en formato HLS (HTTP Live Streaming), que genera un archivo `.m3u8` (el manifest) y muchos segmentos `.ts` de 6-10 segundos cada uno. ese manifiesto apunta a los diferentes streams de calidad y el player selecciona automáticamente cuál usar según el ancho de banda disponible.
 
-**Próximo paso recomendado:** Validar este plan con el equipo de desarrollo, ajustar prioridades según recursos disponibles, y comenzar la Fase 1 con un backlog priorizado y criterios de aceptación claros por cada fase.
+`better_player` soporta HLS nativamente, le pasas la URL del `.m3u8` y él hace todo el adaptive bitrate. configura el buffer: `bufferingConfiguration` con `minBufferMs: 15000` para que empiece a reproducir rápido y `maxBufferMs: 50000` para que precargue suficiente. en redes lentas el buffer corto y en WiFi puede ser más generoso.
+
+para los subtítulos, el estándar web es WebVTT (`.vtt`), que es texto plano con timestamps. `better_player` acepta subtítulos directamente pasándole la URL del archivo `.vtt` en el `BetterPlayerSubtitlesSource`. en tu base de datos guarda la URL del archivo de subtítulos por idioma para cada episodio. en la UI muestra un selector de subtítulos e idioma de audio que modifica el source del player en caliente.
+
+si quieres descargas offline (como hace Crunchyroll Premium), esto se complica bastante porque necesitas DRM o al menos encriptar los segmentos descargados localmente. para MVP puedes omitirlo y dejarlo para una fase posterior.
+
+---
+
+## diseño UI — naranja y gris estilo Crunchyroll
+
+los colores base que defines en `core/theme/`:
+
+- `primaryOrange`: `#F47521` — el naranja icónico
+- `primaryOrangeDark`: `#D4621A` — para hovers y pressed states
+- `backgroundDark`: `#0D0D0D` — casi negro, fondo principal
+- `surfaceDark`: `#1A1A1A` — cards, drawers, bottom sheets
+- `surfaceMedium`: `#2A2A2A` — elementos secundarios
+- `textPrimary`: `#FFFFFF`
+- `textSecondary`: `#B3B3B3` — gris claro para subtítulos y metadata
+- `textMuted`: `#666666` — texto terciario
+
+los skeletons los haces con el paquete `shimmer` usando el color `surfaceDark` como base y `surfaceMedium` como el brillo que se mueve. cada card de anime tiene su skeleton equivalente con las mismas dimensiones. mientras el BLoC esté en estado `Loading`, muestras los skeletons. cuando llega `Loaded`, usas `AnimatedSwitcher` para hacer la transición suave entre skeleton y contenido real.
+
+para los efectos de hover en Flutter (que aplica más en web y desktop), usa `MouseRegion` + `AnimatedContainer` para escalar ligeramente las cards (scale 1.0 → 1.05) y mostrar un overlay naranja semitransparente. en mobile esto se reemplaza por el efecto de ripple de Material pero con el color naranja como `splashColor`.
+
+la tipografía recomendada es `Nunito` o `Poppins` para los títulos (bold, llamativo) y `Inter` o `DM Sans` para el cuerpo. estas las cargas con `google_fonts`.
+
+el home tiene un hero banner con `PageView` que hace autoplay cada 5 segundos con un indicador de puntos, mostrando el anime más nuevo o destacado con un gradient de abajo hacia arriba para que el texto sea legible sobre la imagen. debajo vienen filas horizontales scrolleables (como Netflix) con categorías: "Nuevos episodios", "Popular esta semana", "Acción", "Romance", etc. cada fila es un `ListView.builder` horizontal con las cards de anime (120×170px aprox con bordes redondeados y la calidad/tipo en una badge naranja en la esquina).
+
+---
+
+## sistema de perfiles
+
+Crunchyroll permite múltiples perfiles por cuenta. en tu esquema de base de datos tienes `accounts` (la cuenta principal) y `profiles` (hasta N perfiles según el plan). cada perfil tiene nombre, avatar, preferencias de género, restricción de contenido (perfil de niños), historial propio, favoritos propios y configuración de subtítulos por defecto.
+
+en la app, después del login el usuario ve la pantalla de selección de perfil (con animación de entrada). el perfil seleccionado se guarda en el estado global del BLoC de auth y se incluye en las peticiones al backend como header o query param para personalizar recomendaciones y continuar historial.
+
+el historial (`watch_history`) se sincroniza con el backend cada cierto tiempo y también se guarda localmente en Hive para tener acceso offline a "continuar viendo". cada vez que el usuario pausa o termina un episodio, el player manda al backend el `progress_seconds` con un debounce de 5 segundos para no spamear peticiones.
+
+---
+
+## panel de admin
+
+el admin es una sección separada dentro de la misma app (o podrías hacer una app Flutter separada para web, usando Flutter Web) accesible solo si `role == 'admin'` en el JWT. las secciones del panel son:
+
+gestión de animes — CRUD completo, con formulario para subir thumbnail/banner a Firebase Storage y guardar la URL en PostgreSQL, metadatos completos, asignación de géneros y categorías.
+
+gestión de episodios — subida del video a Firebase Storage, trigger de procesamiento FFmpeg en el backend para generar HLS, asociación con el anime padre, upload de archivos de subtítulos por idioma.
+
+gestión de usuarios — búsqueda por email, ver historial, cambiar plan manualmente, suspender cuentas, ver logs de actividad.
+
+gestión de planes — configurar los precios y límites de cada plan.
+
+estadísticas básicas — usuarios activos, animes más vistos, episodios más populares. esto lo puedes sacar con queries agregadas en PostgreSQL.
+
+---
+
+## roadmap de desarrollo — de planeación a testing
+
+**fase 1 — fundamentos (semanas 1-3)**
+primero configura el proyecto Flutter, define el ThemeData completo con los colores naranja/gris, instala todos los paquetes necesarios y configura el injection_container con get_it. configura go_router con las rutas básicas. levanta el backend (Node/Nest + PostgreSQL) con las migraciones iniciales de las tablas core: users, animes, episodes, plans. conecta Firebase al proyecto y configura Firebase Auth. implementa el flujo completo de autenticación: registro, login, logout, refresh de token, guard de rutas. esto es lo más crítico porque todo lo demás depende de aquí.
+
+**fase 2 — catálogo y home (semanas 4-6)**
+implementa los endpoints del backend para listar animes con paginación, filtros y búsqueda. construye la feature de home con el carrusel hero y las filas de categorías. skeletons en todos lados. lazy loading con paginación infinita. implementa la caché con Hive para que el catálogo funcione sin internet con datos del último fetch. pantalla de detalle del anime con lista de temporadas y episodios.
+
+**fase 3 — player y streaming (semanas 7-9)**
+esta es la fase más técnica. configura el pipeline de FFmpeg en el backend para procesar videos a HLS. integra better_player con configuración de calidades adaptativas. implementa la sincronización del progreso de visualización con debounce. subtítulos con selector de idioma. controles customizados (play/pause, seek, velocidad, pantalla completa). registro de historial en tiempo real.
+
+**fase 4 — perfiles y personalización (semanas 10-11)**
+múltiples perfiles por cuenta con avatares. historial independiente por perfil. sistema de favoritos y watchlist. preferencias de contenido. pantalla de selección de perfil al inicio.
+
+**fase 5 — suscripciones y pagos (semanas 12-13)**
+integra un gateway de pagos (Stripe es lo más fácil, o MercadoPago si tu mercado es LATAM). los planes en PostgreSQL con sus límites. verificación de plan en el backend para servir contenido premium. pantalla de gestión de suscripción.
+
+**fase 6 — notificaciones (semana 14)**
+FCM para push notifications de nuevos episodios. in-app notifications con un bell en la navbar. preferencias de notificaciones por usuario. el backend tiene un job programado que revisa nuevos episodios y dispara notificaciones a los usuarios que tienen ese anime en favoritos o watchlist.
+
+**fase 7 — panel de admin (semanas 15-16)**
+CRUD de animes y episodios con upload de archivos. gestión de usuarios. estadísticas básicas. protección de rutas por rol tanto en frontend como backend.
+
+**fase 8 — testing, pulido y deploy (semanas 17-20)**
+unit tests para todos los usecases (esto es lo más fácil de testear porque son clases puras). bloc tests con `bloc_test` para verificar que los estados se emiten correctamente. widget tests para los componentes más críticos. integration tests para los flujos de auth y player. optimización de performance: mide con Flutter DevTools, busca jank en los listados con muchas imágenes, verifica que las imágenes se están cacheando bien. configuración de flavors para dev/staging/production con diferentes configuraciones de Firebase y API URLs. CI/CD con GitHub Actions para builds automáticos. deploy del backend en Railway, Render o AWS según tu presupuesto.
+
+---
+
+## notas adicionales de seguridad y escalabilidad
+
+el contenido premium nunca debe ser accesible sin JWT válido con el plan correcto. las URLs de Firebase Storage para videos deben ser signed URLs con expiración de 2-4 horas que tu backend genera y devuelve al cliente, no URLs permanentes. así aunque alguien comparta la URL, expira rápido.
+
+implementa rate limiting en el backend para los endpoints de búsqueda y listado para evitar scraping. loggea los eventos importantes (auth events, payment events, errores del player) en una herramienta como Sentry o LogRocket.
+
+si el proyecto crece y tienes muchos usuarios concurrentes viendo videos, el cuello de botella va a ser el almacenamiento y distribución de video. Firebase Storage no tiene CDN nativo potente, considera mover los videos a Cloudflare R2 + Cloudflare CDN o AWS S3 + CloudFront cuando escales, la latencia mejora enormemente para usuarios en diferentes regiones.
+
+para el tema de GDPR/privacidad o leyes mexicanas de protección de datos, guarda solo lo que necesitas, permite que el usuario descargue o elimine su cuenta y datos, y documenta qué datos recolectas y para qué.
