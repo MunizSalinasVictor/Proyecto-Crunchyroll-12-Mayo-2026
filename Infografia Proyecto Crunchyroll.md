@@ -1,6 +1,7 @@
 ## Fase inicial etapa 1 de mi proyecto
 
-<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/b3ebe0f6-335e-4589-b3f6-6f0395d30a5b" />
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/d4fd66c1-ac99-488a-8364-ee00a6eb54e2" />
+
 
 ## Fase 2 Diseño
 
@@ -12,7 +13,8 @@
 
 ## Fase 4 Arquitectura 
 
-<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/5205e06c-bf80-4b11-bb02-63a6bfddacbd" />
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/08d8081b-afd3-4f51-8029-31d6f8bb5dd0" />
+
 
 ## Fase 5 Base de datos
 
