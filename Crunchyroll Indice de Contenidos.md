@@ -12,7 +12,7 @@
 
 ## Tecnologias Utilizadas
 
-<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/13cefb48-c350-4122-885d-4b409d4faa06" />
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/e5d5d986-29b1-4075-a4ec-2722b3dcfabc" />
 
 ## Desarrollo del Proyecto
 
